@@ -46,6 +46,10 @@ class _Color:
             self.code += ';%dm' % modifier
         else:
             self.code += 'm'
+    def __add__(self, other):
+        return self.code + other
+    def __radd__(self, other):
+        return other + self.code
 
 
 reset     = _Color(0)
