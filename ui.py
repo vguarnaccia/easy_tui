@@ -233,17 +233,20 @@ def info(*tokens, **kwargs):
 
 def info_1(*tokens, **kwargs):
     """ Print an important informative message """
-    info(bold, blue, "::", reset, *tokens, **kwargs)
+    sys.stdout.write(bold + blue + "::" +  reset + " ")
+    info(*tokens, **kwargs)
 
 
 def info_2(*tokens, **kwargs):
     """ Print an not so important informative message """
-    info(bold, blue, "=>", reset, *tokens, **kwargs)
+    sys.stdout.write(bold + blue + "=>" +  reset + " ")
+    info(*tokens, **kwargs)
 
 
 def info_3(*tokens, **kwargs):
     """ Print an even less important informative message """
-    info(bold, blue, "*", reset, *tokens, **kwargs)
+    sys.stdout.write(bold + blue + "*" +  reset + " ")
+    info(*tokens, **kwargs)
 
 
 def info_count(i, n, *rest, **kwargs):
@@ -336,7 +339,7 @@ def ask_string(question, default=None):
     Returns what the user entered
     """
     if default:
-        question += " (%s)" % default
+        question += " (Default: %s)" % default
     info(green, "::", reset, question)
     try:
         answer = read_input()
