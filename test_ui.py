@@ -3,9 +3,9 @@ import io
 import re
 from unittest import mock
 
-import ui
-
 import pytest
+
+import ui
 
 RED = "\x1b[31;1m"
 GREEN = "\x1b[32;1m"

@@ -1,0 +1,8 @@
+- Improve progress bar
+- Improve demos
+- Add delay feature
+- Come up with a catchier name
+- Write a setup.py
+- Docs and tests
+- progres_bar disappears when complete
+- Change API to include "word wrapping"

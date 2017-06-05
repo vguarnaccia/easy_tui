@@ -6,42 +6,43 @@ Example:
     $ python ui_example.py
 """
 
-import ui
 from tqdm import tqdm
+
+import ui
 
 
 def coloring_demo():
     """Print each color and style"""
     ui.info_1(
         'We have a ton of ANSI color codes and styles such as:',
-        ui.bold, "bold",
-        ui.faint, "faint",
-        ui.standout, "standout (italics)",
-        ui.underline, "underline",
-        ui.blink, "blink",
-        ui.overline, "overline",
+        ui.bold + "bold",
+        ui.faint + "faint",
+        ui.standout + "standout (italics)",
+        ui.underline + "underline",
+        ui.blink + "blink",
+        ui.overline + "overline",
 
-        ui.black, "black",
-        ui.darkred, "darkred",
-        ui.darkgreen, "darkgreen",
-        ui.brown, "brown",
-        ui.darkblue, "darkblue",
-        ui.purple, "purple",
-        ui.teal, "teal",
-        ui.lightgray, "lightgray",
+        ui.black + "black",
+        ui.darkred + "darkred",
+        ui.darkgreen + "darkgreen",
+        ui.brown + "brown",
+        ui.darkblue + "darkblue",
+        ui.purple + "purple",
+        ui.teal + "teal",
+        ui.lightgray + "lightgray",
 
-        ui.darkgray, "darkgray",
-        ui.red, "red",
-        ui.green, "green",
-        ui.yellow, "yellow",
-        ui.blue, "blue",
-        ui.fuchsia, "fuchsia",
-        ui.turquoise, "turquoise",
-        ui.white, "white",
+        ui.darkgray + "darkgray",
+        ui.red + "red",
+        ui.green + "green",
+        ui.yellow + "yellow",
+        ui.blue + "blue",
+        ui.fuchsia + "fuchsia",
+        ui.turquoise + "turquoise",
+        ui.white + "white",
 
         'And a few color aliases like:',
-        ui.darkteal, "darkteal" + ui.reset + " which is turquoise,",
-        ui.darkyellow, "darkyellow" + ui.reset + " which is brown,",
+        ui.darkteal + "darkteal" + ui.reset + " which is turquoise,",
+        ui.darkyellow + "darkyellow" + ui.reset + " which is brown,",
         "and " + ui.fuscia + "fuscia" + ui.reset + " which is fuchsia.",
         sep=(ui.reset + '\n' + ui.tabs(2))
     )

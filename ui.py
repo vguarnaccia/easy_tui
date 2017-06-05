@@ -1,22 +1,21 @@
-import sys
-import time
-import os
 import datetime
 import difflib
 import functools
-import traceback
 import io
+import os
+import sys
+import time
+import traceback
 
 import colorama
 import unidecode
 
+colorama.init()
 # Global variable to store configuration
 
 CONFIG = {
     "verbose": os.environ.get("VERBOSE"),
     "quiet": False,
-    "color": "auto",
-    "title": "auto",
     "timestamp": False,
     "record": False  # used for testing
 }
@@ -25,113 +24,63 @@ CONFIG = {
 # used for testing
 _MESSAGES = list()
 
-# so that we don't re-compute this variable over
-# and over again:
-_ENABLE_XTERM_TITLE = None
 
-# should we call colorama.init()?
-_INITIALIZED = False
-
-
-# ANSI color codes, as classes,
-# so that we can use ::
-#
-#  ui.info(ui.bold, "This is bold")
+def _color(code, modifier=None):
+    code = '\033[%d' % code
+    code += ';%dm' % modifier if modifier is not None else 'm'
+    return code
 
 
-class _Color:
-    def __init__(self, code, modifier=None):
-        self.code = '\033[%d' % code
-        if modifier is not None:
-            self.code += ';%dm' % modifier
-        else:
-            self.code += 'm'
-    def __add__(self, other):
-        return self.code + other
-    def __radd__(self, other):
-        return other + self.code
+reset = _color(0)
+bold = _color(1)
+faint = _color(2)
+standout = _color(3)
+underline = _color(4)
+blink = _color(5)
+overline = _color(6)
 
+black = _color(30)
+darkred = _color(31)
+darkgreen = _color(32)
+brown = _color(33)
+darkblue = _color(34)
+purple = _color(35)
+teal = _color(36)
+lightgray = _color(37)
 
-reset     = _Color(0)
-bold      = _Color(1)
-faint     = _Color(2)
-standout  = _Color(3)
-underline = _Color(4)
-blink     = _Color(5)
-overline  = _Color(6)
-
-black      = _Color(30)
-darkred    = _Color(31)
-darkgreen  = _Color(32)
-brown      = _Color(33)
-darkblue   = _Color(34)
-purple     = _Color(35)
-teal       = _Color(36)
-lightgray  = _Color(37)
-
-darkgray   = _Color(30, 1)
-red        = _Color(31, 1)
-green      = _Color(32, 1)
-yellow     = _Color(33, 1)
-blue       = _Color(34, 1)
-fuchsia    = _Color(35, 1)
-turquoise  = _Color(36, 1)
-white      = _Color(37, 1)
+darkgray = _color(30, 1)
+red = _color(31, 1)
+green = _color(32, 1)
+yellow = _color(33, 1)
+blue = _color(34, 1)
+fuchsia = _color(35, 1)
+turquoise = _color(36, 1)
+white = _color(37, 1)
 
 darkteal = turquoise
 darkyellow = brown
 fuscia = fuchsia
 
 # Other nice-to-have characters:
-class _Characters:
-    def __init__(self, color, as_unicode, as_ascii):
-        if os.name == "nt":
-            self.as_string = as_ascii
-        else:
-            self.as_string = as_unicode
-        self.color = color
-
-    def tuple(self):
-        return (reset, self.color, self.as_string, reset)
 
 
-ellipsis = _Characters(reset, "…", "...")
-check    = _Characters(green, "✓", "ok")
-cross    = _Characters(red,   "❌","ko")
+def _characters(color, as_unicode, as_ascii):
+    as_string = as_unicode if os.name != 'nt' else as_ascii
+    return reset + color + as_string + reset
 
-def using_colorama():
-    if os.name == "nt":
-        if "TERM" not in os.environ:
-            return True
-        if os.environ["TERM"] == "cygwin":
-            return True
-        return False
-    else:
-        return False
+
+ellipsis = _characters(reset, "…", "...")
+check = _characters(green, "✓", "ok")
+cross = _characters(red, "❌", "ko")
 
 
 def config_color(fileobj):
-    if os.name == "nt":
-        # sys.isatty() is False on mintty, so
-        # let there be colors by default. (when running on windows,
-        # people can use --color=never)
-        # Note that on Windows, when run from cmd.exe,
-        # console.init() does the right thing if sys.stdout is redirected
-        return True
-    else:
-        return fileobj.isatty()
-
-
-def update_title(mystr, fileobj):
-    if using_colorama():
-        # By-pass colorama bug:
-        # colorama/win32.py, line 154
-        #   return _SetConsoleTitleW(title)
-        # ctypes.ArgumentError: argument 1: <class 'TypeError'>: wrong type
-        return
-    mystr = '\x1b]0;%s\x07' % mystr
-    fileobj.write(mystr)
-    fileobj.flush()
+    # sys.isatty() is False on mintty, so
+    # let there be colors by default. (when running on windows,
+    # people can use --color=never)
+    # Note that on Windows, when run from cmd.exe,
+    # console.init() does the right thing if sys.stdout is redirected
+    return fileobj.isatty() or os.name == "nt"
 
 
 def process_tokens(tokens, *, end="\n", sep=" "):
@@ -140,16 +89,8 @@ def process_tokens(tokens, *, end="\n", sep=" "):
     only the 'normal' characters
 
     """
-    # Flatten the list of tokens in case some of them are of class _Characters
-    flat_tokens = list()
-    for token in tokens:
-        if isinstance(token, _Characters):
-            flat_tokens.extend(token.tuple())
-        else:
-            flat_tokens.append(token)
-
-    with_color = _process_tokens(flat_tokens, end=end, sep=sep, color=True)
-    without_color = _process_tokens(flat_tokens, end=end, sep=sep, color=False)
+    with_color = _process_tokens(tokens, end=end, sep=sep, color=True)
+    without_color = _process_tokens(tokens, end=end, sep=sep, color=False)
     return (with_color, without_color)
 
 
@@ -161,16 +102,12 @@ def _process_tokens(tokens, *, end="\n", sep=" ", color=True):
         res += now.strftime("[%Y-%m-%d %H:%M:%S] ")
 
     for i, token in enumerate(tokens):
-        if isinstance(token, _Color):
-            if color:
-                res += token.code
-        else:
-            res += str(token)
-            if i != len(tokens) -1:
-                res += sep
+        res += str(token)
+        if i != len(tokens) - 1:
+            res += sep
     res += end
     if color:
-        res += reset.code
+        res += reset
     return res
 
 
@@ -178,19 +115,12 @@ def message(*tokens, **kwargs):
     """ Helper method for error, warning, info, debug
 
     """
-    if using_colorama():
-        global _INITIALIZED
-        if not _INITIALIZED:
-            colorama.init()
-            _INITIALIZED = True
     sep = kwargs.get("sep", " ")
     end = kwargs.get("end", "\n")
     fileobj = kwargs.get("fileobj") or sys.stdout
     with_color, without_color = process_tokens(tokens, end=end, sep=sep)
     if CONFIG["record"]:
         _MESSAGES.append(without_color)
-    if kwargs.get("update_title") and with_color:
-        update_title(without_color, fileobj)
     to_write = with_color if config_color(fileobj) else without_color
     try:
         fileobj.write(to_write)
@@ -233,19 +163,19 @@ def info(*tokens, **kwargs):
 
 def info_1(*tokens, **kwargs):
     """ Print an important informative message """
-    sys.stdout.write(bold + blue + "::" +  reset + " ")
+    sys.stdout.write(bold + blue + "::" + reset + " ")
     info(*tokens, **kwargs)
 
 
 def info_2(*tokens, **kwargs):
     """ Print an not so important informative message """
-    sys.stdout.write(bold + blue + "=>" +  reset + " ")
+    sys.stdout.write(bold + blue + "=>" + reset + " ")
     info(*tokens, **kwargs)
 
 
 def info_3(*tokens, **kwargs):
     """ Print an even less important informative message """
-    sys.stdout.write(bold + blue + "*" +  reset + " ")
+    sys.stdout.write(bold + blue + "*" + reset + " ")
     info(*tokens, **kwargs)
 
 
@@ -260,26 +190,42 @@ def info_count(i, n, *rest, **kwargs):
     * ( 5/10)
 
     """
-    num_digits = len(str(n)) # lame, I know
+    num_digits = len(str(n))  # lame, I know
     counter_format = "(%{}d/%d)".format(num_digits)
-    counter_str = counter_format % (i+1, n)
+    counter_str = counter_format % (i + 1, n)
     info(green, "*", reset, counter_str, reset, *rest, **kwargs)
 
 
-def info_progress(prefix, value, max_value):
-    """ Display info progress in percent
-    :param: value the current value
-    :param: max_value the max value
-    :param: prefix the prefix message to print
-
-    >>> info_progress(5, 20, "Done")
-    Done: 25%
-
+def info_progress(
+        iteration,
+        total,
+        prefix='',
+        suffix='',
+        decimals=1,
+        bar_length=100):
     """
-    if sys.stdout.isatty():
-        percent = float(value) / max_value * 100
-        sys.stdout.write(prefix + ": %.0f%%\r" % percent)
-        sys.stdout.flush()
+    Call in a loop to create terminal progress bar
+    @params:
+        iteration   - Required  : current iteration (Int)
+        total       - Required  : total iterations (Int)
+        prefix      - Optional  : prefix string (Str)
+        suffix      - Optional  : suffix string (Str)
+        decimals    - Optional  : positive number of decimals in percent complete (Int)
+        bar_length  - Optional  : character length of bar (Int)
+    """
+    # https://gist.github.com/aubricus/f91fb55dc6ba5557fbab06119420dd6a
+    str_format = "{0:." + str(decimals) + "f}"
+    percents = str_format.format(100 * (iteration / float(total)))
+    filled_length = int(round(bar_length * iteration / float(total)))
+    bar = '█' * filled_length + '-' * (bar_length - filled_length)
+
+    sys.stdout.write(
+        '\r%s |%s| %s%s %s' %
+        (prefix, bar, percents, '%', suffix)),
+
+    if iteration == total:
+        sys.stdout.write('\n')
+    sys.stdout.flush()
 
 
 def debug(*tokens, **kwargs):
@@ -324,6 +270,7 @@ def message_for_exception(exception, message):
             str(exception), "\n",
             reset,
             buffer.getvalue())
+
 
 def read_input():
     """ Read input from the user
@@ -373,10 +320,10 @@ def ask_choice(input_text, choices):
         except ValueError:
             info("Please enter number")
             continue
-        if index not in range(1, len(choices)+1):
+        if index not in range(1, len(choices) + 1):
             info(index, "is out of range")
             continue
-        res = choices[index-1]
+        res = choices[index - 1]
         keep_asking = False
 
     return res
@@ -416,6 +363,7 @@ class Timer:
     'something took 2h 33m 42s'
 
     """
+
     def __init__(self, description):
         self.description = description
         self.start_time = None
@@ -449,7 +397,8 @@ class Timer:
         elapsed_seconds = elapsed_time.seconds
         hours, remainder = divmod(int(elapsed_seconds), 3600)
         minutes, seconds = divmod(remainder, 60)
-        as_str = "%sh %sm %ss %dms" % (hours, minutes, seconds, elapsed_time.microseconds / 1000)
+        as_str = "%sh %sm %ss %dms" % (
+            hours, minutes, seconds, elapsed_time.microseconds / 1000)
         info("%s took %s" % (self.description, as_str))
 
 
@@ -457,8 +406,10 @@ def did_you_mean(message, user_input, choices):
     if not choices:
         return message
     else:
-        result = {difflib.SequenceMatcher(a=user_input, b=choice).ratio(): choice \
-                  for choice in choices}
+        result = {
+            difflib.SequenceMatcher(
+                a=user_input,
+                b=choice).ratio(): choice for choice in choices}
         message += "\nDid you mean: %s?" % result[max(result)]
         return message
 
@@ -467,6 +418,7 @@ if __name__ == "__main__":
     # Monkey-patch message() so that we sleep after
     # each call
     old_message = message
+
     def new_message(*args, **kwargs):
         old_message(*args, **kwargs)
         time.sleep(1)
@@ -476,11 +428,11 @@ if __name__ == "__main__":
     info("This is", red, "red")
     info("this is", bold, "bold")
     list_of_things = ["foo", "bar", "baz"]
-    for i, thing in enumerate(list_of_things):
-        info_count(i, len(list_of_things), thing)
-    info_progress("Done",  5, 20)
-    info_progress("Done", 10, 20)
-    info_progress("Done", 20, 20)
+    for j, thing in enumerate(list_of_things):
+        info_count(j, len(list_of_things), thing)
+    info_progress(5, 20)
+    info_progress(10, 20)
+    info_progress(20, 20)
     info("\n", check, "all done")
 
     # stop monkey patching
