@@ -30,48 +30,52 @@ def _color(code, modifier=None):
     code += ';%dm' % modifier if modifier is not None else 'm'
     return code
 
+COLORS = {
+    # Styles
+    'reset': _color(0),
+    'bold': _color(1),
+    'faint': _color(2),
+    'standout': _color(3),
+    'underline': _color(4),
+    'blink': _color(5),
+    'overline': _color(6),
 
-reset = _color(0)
-bold = _color(1)
-faint = _color(2)
-standout = _color(3)
-underline = _color(4)
-blink = _color(5)
-overline = _color(6)
+    # Major colors
+    'black': _color(30),
+    'darkred': _color(31),
+    'darkgreen': _color(32),
+    'brown': _color(33),
+    'darkblue': _color(34),
+    'purple': _color(35),
+    'teal': _color(36),
+    'lightgray': _color(37),
 
-black = _color(30)
-darkred = _color(31)
-darkgreen = _color(32)
-brown = _color(33)
-darkblue = _color(34)
-purple = _color(35)
-teal = _color(36)
-lightgray = _color(37)
-
-darkgray = _color(30, 1)
-red = _color(31, 1)
-green = _color(32, 1)
-yellow = _color(33, 1)
-blue = _color(34, 1)
-fuchsia = _color(35, 1)
-turquoise = _color(36, 1)
-white = _color(37, 1)
-
-darkteal = turquoise
-darkyellow = brown
-fuscia = fuchsia
+    # Minor colors
+    'darkgray': _color(30, 1),
+    'red': _color(31, 1),
+    'green': _color(32, 1),
+    'yellow': _color(33, 1),
+    'blue': _color(34, 1),
+    'fuchsia': _color(35, 1),
+    'turquoise': _color(36, 1),
+    'white': _color(37, 1),
+}
 
 # Other nice-to-have characters:
 
+def colorize(colors, phrase):
+    """Wrap a string in a color"""
+    as_string = ' '.join(COLORS[color] for color in colors.split())
+    return COLORS['reset'] + as_string + phrase + COLORS['reset']
 
 def _characters(color, as_unicode, as_ascii):
     as_string = as_unicode if os.name != 'nt' else as_ascii
-    return reset + color + as_string + reset
+    return colorize(color, as_string)
 
 
-ellipsis = _characters(reset, "…", "...")
-check = _characters(green, "✓", "ok")
-cross = _characters(red, "❌", "ko")
+ELLIPSIS = _characters('reset', "…", "...")
+CHECK = _characters('green', "✓", "ok")
+CROSS = _characters('red', "❌", "ko")
 
 
 def config_color(fileobj):
@@ -107,7 +111,7 @@ def _process_tokens(tokens, *, end="\n", sep=" ", color=True):
             res += sep
     res += end
     if color:
-        res += reset
+        res += COLORS['reset']
     return res
 
 
@@ -142,14 +146,14 @@ def fatal(*tokens, **kwargs):
 
 def error(*tokens, **kwargs):
     """ Print an error message """
-    tokens = [bold, red, "[ERROR]:"] + list(tokens)
+    tokens = colorize('bold read', '[ERROR]:') + list(tokens)
     kwargs["fileobj"] = sys.stderr
     message(*tokens, **kwargs)
 
 
 def warning(*tokens, **kwargs):
     """ Print a warning message """
-    tokens = [brown, "[WARN ]:"] + list(tokens)
+    tokens = colorize('brown', '[WARN ]:') + list(tokens)
     kwargs["fileobj"] = sys.stderr
     message(*tokens, **kwargs)
 
@@ -163,19 +167,19 @@ def info(*tokens, **kwargs):
 
 def info_1(*tokens, **kwargs):
     """ Print an important informative message """
-    sys.stdout.write(bold + blue + "::" + reset + " ")
+    sys.stdout.write(colorize('bold blue', '::'))
     info(*tokens, **kwargs)
 
 
 def info_2(*tokens, **kwargs):
     """ Print an not so important informative message """
-    sys.stdout.write(bold + blue + "=>" + reset + " ")
+    sys.stdout.write(colorize('bold blue', '=>'))
     info(*tokens, **kwargs)
 
 
 def info_3(*tokens, **kwargs):
     """ Print an even less important informative message """
-    sys.stdout.write(bold + blue + "*" + reset + " ")
+    sys.stdout.write(colorize('bold blue', '*'))
     info(*tokens, **kwargs)
 
 
@@ -193,7 +197,7 @@ def info_count(i, n, *rest, **kwargs):
     num_digits = len(str(n))  # lame, I know
     counter_format = "(%{}d/%d)".format(num_digits)
     counter_str = counter_format % (i + 1, n)
-    info(green, "*", reset, counter_str, reset, *rest, **kwargs)
+    info(colorize('green', "*"), counter_str, COLORS['reset'], *rest, **kwargs)
 
 
 def info_progress(
@@ -232,7 +236,7 @@ def debug(*tokens, **kwargs):
     """ Print a debug message """
     if not CONFIG["verbose"] or CONFIG["record"]:
         return
-    tokens = [blue, "[DEBUG]:"] + list(tokens)
+    tokens = colorize('blue', '[DEBUG]:') + list(tokens)
     message(*tokens, **kwargs)
 
 
@@ -276,7 +280,7 @@ def read_input():
     """ Read input from the user
 
     """
-    info(green, "> ", end="")
+    info(colorize('green', '> '), end="")
     return input()
 
 
