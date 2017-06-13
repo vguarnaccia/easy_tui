@@ -1,10 +1,11 @@
+# -*- coding: utf-8 -*-
+"""This module provides helper functions for pretty, colorized TUIs.
+"""
 import datetime
 import difflib
-import functools
 import io
 import os
 import sys
-import time
 import traceback
 
 import colorama
@@ -19,10 +20,6 @@ CONFIG = {
     "timestamp": False,
     "record": False  # used for testing
 }
-
-
-# used for testing
-_MESSAGES = list()
 
 
 def _color(code, modifier=None):
@@ -77,15 +74,8 @@ ELLIPSIS = _characters('reset', "…", "...")
 CHECK = _characters('green', "✓", "ok")
 CROSS = _characters('red', "❌", "ko")
 
-
-def config_color(fileobj):
-    # sys.isatty() is False on mintty, so
-    # let there be colors by default. (when running on windows,
-    # people can use --color=never)
-    # Note that on Windows, when run from cmd.exe,
-    # console.init() does the right thing if sys.stdout is redirected
-    return fileobj.isatty() or os.name == "nt"
-
+# ARROW =
+# THUS =
 
 def process_tokens(tokens, *, end="\n", sep=" "):
     """ Returns two strings from a list of tokens.
@@ -123,9 +113,12 @@ def message(*tokens, **kwargs):
     end = kwargs.get("end", "\n")
     fileobj = kwargs.get("fileobj") or sys.stdout
     with_color, without_color = process_tokens(tokens, end=end, sep=sep)
-    if CONFIG["record"]:
-        _MESSAGES.append(without_color)
-    to_write = with_color if config_color(fileobj) else without_color
+    # sys.isatty() is False on mintty, so
+    # let there be colors by default. (when running on windows,
+    # people can use --color=never)
+    # Note that on Windows, when run from cmd.exe,
+    # console.init() does the right thing if sys.stdout is redirected
+    to_write = with_color if fileobj.isatty() or os.name == "nt" else without_color
     try:
         fileobj.write(to_write)
     except UnicodeEncodeError:
@@ -183,20 +176,20 @@ def info_3(*tokens, **kwargs):
     info(*tokens, **kwargs)
 
 
-def info_count(i, n, *rest, **kwargs):
+def info_count(current, total, *rest, **kwargs):
     """ Same as info, but displays a nice counter
     color will be reset
     >>> info_count(0, 4)
     * (1/4)
-    >>> info_count(4, 12)
+    >>> info_count(5, 12)
     * ( 5/12)
-    >>> info_count(4, 10)
+    >>> info_count(5, 10)
     * ( 5/10)
 
     """
-    num_digits = len(str(n))  # lame, I know
+    num_digits = len(str(total))  # lame, I know
     counter_format = "(%{}d/%d)".format(num_digits)
-    counter_str = counter_format % (i + 1, n)
+    counter_str = counter_format % (current + 1, total)
     info(colorize('green', "*"), counter_str, COLORS['reset'], *rest, **kwargs)
 
 
@@ -205,7 +198,6 @@ def info_progress(
         total,
         prefix='',
         suffix='',
-        decimals=1,
         bar_length=100):
     """
     Call in a loop to create terminal progress bar
@@ -218,15 +210,10 @@ def info_progress(
         bar_length  - Optional  : character length of bar (Int)
     """
     # https://gist.github.com/aubricus/f91fb55dc6ba5557fbab06119420dd6a
-    str_format = "{0:." + str(decimals) + "f}"
-    percents = str_format.format(100 * (iteration / float(total)))
+    percents = "{0:.1f}".format(100 * (iteration / float(total)))
     filled_length = int(round(bar_length * iteration / float(total)))
-    bar = '█' * filled_length + '-' * (bar_length - filled_length)
-
-    sys.stdout.write(
-        '\r%s |%s| %s%s %s' %
-        (prefix, bar, percents, '%', suffix)),
-
+    fill = '█' * filled_length + '-' * (bar_length - filled_length)
+    sys.stdout.write('\r%s |%s| %s%s %s' %(prefix, fill, percents, '%', suffix))
     if iteration == total:
         sys.stdout.write('\n')
     sys.stdout.flush()
@@ -256,7 +243,7 @@ def tabs(num):
     return "  " * num
 
 
-def message_for_exception(exception, message):
+def message_for_exception(exception, msg):
     """ Returns a tuple suitable for ui.error()
     from the given exception.
     (Traceback will be part of the message, after
@@ -266,19 +253,18 @@ def message_for_exception(exception, message):
     than the main one.
 
     """
-    tb = sys.exc_info()[2]
+    trace = sys.exc_info()[2]
     buffer = io.StringIO()
-    traceback.print_tb(tb, file=io)
-    return (red, message + "\n",
+    traceback.print_tb(trace, file=io)
+    return (COLORS['red'], msg + "\n",
             exception.__class__.__name__,
             str(exception), "\n",
-            reset,
+            COLORS['reset'],
             buffer.getvalue())
 
 
 def read_input():
     """ Read input from the user
-
     """
     info(colorize('green', '> '), end="")
     return input()
@@ -291,7 +277,7 @@ def ask_string(question, default=None):
     """
     if default:
         question += " (Default: %s)" % default
-    info(green, "::", reset, question)
+    info(COLORS['green'], "::", COLORS['reset'], question)
     try:
         answer = read_input()
     except KeyboardInterrupt:
@@ -305,11 +291,11 @@ def ask_choice(input_text, choices):
     """Ask the user to choose from a list of choices
 
     """
-    info(green, "::", reset, input_text)
+    info(COLORS['green'], "::", COLORS['reset'], input_text)
     for i, choice in enumerate(choices, start=1):
         if i == 1:
             choice += " \t(default)"
-        info("  ", blue, "%i" % i, reset, choice)
+        info("  ", COLORS['blue'], "%i" % i, COLORS['reset'], choice)
     keep_asking = True
     res = None
     while keep_asking:
@@ -337,9 +323,9 @@ def ask_yes_no(question, default=False):
     """Ask the user to answer by yes or no"""
     while True:
         if default:
-            info(green, "::", reset, question, "(Y/n)")
+            info(COLORS['green'], "::", COLORS['reset'], question, "(Y/n)")
         else:
-            info(green, "::", reset, question, "(y/N)")
+            info(COLORS['green'], "::", COLORS['reset'], question, "(y/N)")
         answer = read_input()
         if answer.lower() in ["y", "yes"]:
             return True
@@ -350,97 +336,34 @@ def ask_yes_no(question, default=False):
         warning("Please answer by 'y' (yes) or 'n' (no) ")
 
 
-class Timer:
-    """ To be used as a decorator,
-    or as a with statement:
-
-    >>> @Timer("something")
-        def do_something():
-            foo()
-            bar()
-    # Or:
-    >>> with Timer("something")
-        foo()
-        bar()
-
-    This will print:
-    'something took 2h 33m 42s'
-
-    """
-
-    def __init__(self, description):
-        self.description = description
-        self.start_time = None
-        self.stop_time = None
-        self.elapsed_time = None
-
-    def __call__(self, func, *args, **kwargs):
-        @functools.wraps(func)
-        def res(*args, **kwargs):
-            self.start()
-            ret = func(*args, **kwargs)
-            self.stop()
-            return ret
-        return res
-
-    def __enter__(self):
-        self.start()
-        return self
-
-    def __exit__(self, *unused):
-        self.stop()
-
-    def start(self):
-        """ Start the timer """
-        self.start_time = datetime.datetime.now()
-
-    def stop(self):
-        """ Stop the timer and emit a nice log """
-        end_time = datetime.datetime.now()
-        elapsed_time = end_time - self.start_time
-        elapsed_seconds = elapsed_time.seconds
-        hours, remainder = divmod(int(elapsed_seconds), 3600)
-        minutes, seconds = divmod(remainder, 60)
-        as_str = "%sh %sm %ss %dms" % (
-            hours, minutes, seconds, elapsed_time.microseconds / 1000)
-        info("%s took %s" % (self.description, as_str))
-
-
-def did_you_mean(message, user_input, choices):
+def did_you_mean(msg, user_input, choices):
+    """Present user with iterable of choices"""
     if not choices:
-        return message
-    else:
-        result = {
-            difflib.SequenceMatcher(
-                a=user_input,
-                b=choice).ratio(): choice for choice in choices}
-        message += "\nDid you mean: %s?" % result[max(result)]
-        return message
+        return msg
+    result = {
+        difflib.SequenceMatcher(
+            a=user_input,
+            b=choice).ratio(): choice for choice in choices}
+    msg += "\nDid you mean: %s?" % result[max(result)]
+    return msg
 
-
-if __name__ == "__main__":
-    # Monkey-patch message() so that we sleep after
-    # each call
-    old_message = message
-
-    def new_message(*args, **kwargs):
-        old_message(*args, **kwargs)
-        time.sleep(1)
-    message = new_message
+def example():
+    """This is the example provided by Dimitri Merejkowsky.
+    """
     info_1("Important info")
     info_2("Secondary info")
-    info("This is", red, "red")
-    info("this is", bold, "bold")
+    info("This is", COLORS['red'], "red")
+    info("this is", COLORS['bold'], "bold")
     list_of_things = ["foo", "bar", "baz"]
     for j, thing in enumerate(list_of_things):
         info_count(j, len(list_of_things), thing)
     info_progress(5, 20)
     info_progress(10, 20)
     info_progress(20, 20)
-    info("\n", check, "all done")
-
-    # stop monkey patching
-    message = old_message
+    info("\n", CHECK, "all done")
     fruits = ["apple", "orange", "banana"]
     answer = ask_choice("Choose a fruit", fruits)
     info("You chose:", answer)
+
+if __name__ == "__main__":
+    example()
