@@ -18,7 +18,6 @@ CONFIG = {
     "verbose": os.environ.get("VERBOSE"),
     "quiet": False,
     "timestamp": False,
-    "record": False  # used for testing
 }
 
 
@@ -221,10 +220,9 @@ def info_progress(
 
 def debug(*tokens, **kwargs):
     """ Print a debug message """
-    if not CONFIG["verbose"] or CONFIG["record"]:
-        return
-    tokens = colorize('blue', '[DEBUG]:') + list(tokens)
-    message(*tokens, **kwargs)
+    if CONFIG["verbose"]:
+        tokens = colorize('blue', '[DEBUG]:') + list(tokens)
+        message(*tokens, **kwargs)
 
 
 def indent_iterable(elems, num=2):
