@@ -1,17 +1,13 @@
 # -*- coding: utf-8 -*-
 """This module provides helper functions for pretty, colorized TUIs.
 """
-import datetime
 import difflib
-import io
 import os
 import sys
-import traceback
 
-import colorama
-import unidecode
+from colorama import init
 
-colorama.init()
+init()
 # Global variable to store configuration
 
 CONFIG = {
@@ -66,8 +62,8 @@ def colorize(colors, phrase):
 
 def _characters(color, as_unicode, as_ascii):
     as_string = as_unicode if os.name != 'nt' else as_ascii
-    return colorize(color, as_string)
 
+    return colorize(color, as_string)
 
 ELLIPSIS = _characters('reset', "…", "...")
 CHECK = _characters('green', "✓", "ok")
@@ -76,103 +72,19 @@ CROSS = _characters('red', "❌", "ko")
 # ARROW =
 # THUS =
 
-def process_tokens(tokens, *, end="\n", sep=" "):
-    """ Returns two strings from a list of tokens.
-    One containing ASCII escape codes, the other
-    only the 'normal' characters
+def header(head, *args, **kwargs):
+    """Processing head needs improvement"""
+    sys.stdout.write(head)
+    sys.stdout.write(' ')
+    print(*args, **kwargs)
 
-    """
-    with_color = _process_tokens(tokens, end=end, sep=sep, color=True)
-    without_color = _process_tokens(tokens, end=end, sep=sep, color=False)
-    return (with_color, without_color)
+def h1(*args, **kwargs):
+    """Print top level information"""
+    header(colorize('bold blue', '::'), *args, **kwargs)
 
-
-def _process_tokens(tokens, *, end="\n", sep=" ", color=True):
-    res = ""
-
-    if CONFIG["timestamp"]:
-        now = datetime.datetime.now()
-        res += now.strftime("[%Y-%m-%d %H:%M:%S] ")
-
-    for i, token in enumerate(tokens):
-        res += str(token)
-        if i != len(tokens) - 1:
-            res += sep
-    res += end
-    if color:
-        res += COLORS['reset']
-    return res
-
-
-def message(*tokens, **kwargs):
-    """ Helper method for error, warning, info, debug
-
-    """
-    sep = kwargs.get("sep", " ")
-    end = kwargs.get("end", "\n")
-    fileobj = kwargs.get("fileobj") or sys.stdout
-    with_color, without_color = process_tokens(tokens, end=end, sep=sep)
-    # sys.isatty() is False on mintty, so
-    # let there be colors by default. (when running on windows,
-    # people can use --color=never)
-    # Note that on Windows, when run from cmd.exe,
-    # console.init() does the right thing if sys.stdout is redirected
-    to_write = with_color if fileobj.isatty() or os.name == "nt" else without_color
-    try:
-        fileobj.write(to_write)
-    except UnicodeEncodeError:
-        # Maybe the file descritor does not support the full Unicode
-        # set, like stdout on Windows.
-        # Use the unidecode library
-        # to make sure we only have ascii, while still keeping
-        # as much info as we can
-        fileobj.write(unidecode.unidecode(to_write))
-    fileobj.flush()
-
-
-def fatal(*tokens, **kwargs):
-    """ Print an error message and calls sys.exit """
-    error(*tokens, **kwargs)
-    sys.exit(1)
-
-
-def error(*tokens, **kwargs):
-    """ Print an error message """
-    tokens = colorize('bold read', '[ERROR]:') + list(tokens)
-    kwargs["fileobj"] = sys.stderr
-    message(*tokens, **kwargs)
-
-
-def warning(*tokens, **kwargs):
-    """ Print a warning message """
-    tokens = colorize('brown', '[WARN ]:') + list(tokens)
-    kwargs["fileobj"] = sys.stderr
-    message(*tokens, **kwargs)
-
-
-def info(*tokens, **kwargs):
-    """ Print an informative message """
-    if CONFIG["quiet"]:
-        return
-    message(*tokens, **kwargs)
-
-
-def info_1(*tokens, **kwargs):
-    """ Print an important informative message """
-    sys.stdout.write(colorize('bold blue', '::'))
-    info(*tokens, **kwargs)
-
-
-def info_2(*tokens, **kwargs):
-    """ Print an not so important informative message """
-    sys.stdout.write(colorize('bold blue', '=>'))
-    info(*tokens, **kwargs)
-
-
-def info_3(*tokens, **kwargs):
-    """ Print an even less important informative message """
-    sys.stdout.write(colorize('bold blue', '*'))
-    info(*tokens, **kwargs)
+def h2(*args, **kwargs):
+    """Print secondary information"""
+    header(colorize('bold blue', '=>'), *args, **kwargs)
 
 
 def info_count(current, total, *rest, **kwargs):
@@ -189,7 +101,7 @@ def info_count(current, total, *rest, **kwargs):
     num_digits = len(str(total))  # lame, I know
     counter_format = "(%{}d/%d)".format(num_digits)
     counter_str = counter_format % (current + 1, total)
-    info(colorize('green', "*"), counter_str, COLORS['reset'], *rest, **kwargs)
+    print(colorize('green', "*"), counter_str, COLORS['reset'], *rest, **kwargs)
 
 
 def info_progress(
@@ -218,12 +130,6 @@ def info_progress(
     sys.stdout.flush()
 
 
-def debug(*tokens, **kwargs):
-    """ Print a debug message """
-    if CONFIG["verbose"]:
-        tokens = colorize('blue', '[DEBUG]:') + list(tokens)
-        message(*tokens, **kwargs)
-
 
 def indent_iterable(elems, num=2):
     """Indent an iterable."""
@@ -241,30 +147,10 @@ def tabs(num):
     return "  " * num
 
 
-def message_for_exception(exception, msg):
-    """ Returns a tuple suitable for ui.error()
-    from the given exception.
-    (Traceback will be part of the message, after
-    the ``message`` argument)
-
-    Useful when the exception occurs in an other thread
-    than the main one.
-
-    """
-    trace = sys.exc_info()[2]
-    buffer = io.StringIO()
-    traceback.print_tb(trace, file=io)
-    return (COLORS['red'], msg + "\n",
-            exception.__class__.__name__,
-            str(exception), "\n",
-            COLORS['reset'],
-            buffer.getvalue())
-
-
 def read_input():
     """ Read input from the user
     """
-    info(colorize('green', '> '), end="")
+    header(colorize('green', '>'), end="")
     return input()
 
 
@@ -275,7 +161,7 @@ def ask_string(question, default=None):
     """
     if default:
         question += " (Default: %s)" % default
-    info(COLORS['green'], "::", COLORS['reset'], question)
+    header(colorize('green', "::"), question)
     try:
         answer = read_input()
     except KeyboardInterrupt:
@@ -285,7 +171,7 @@ def ask_string(question, default=None):
     return answer
 
 
-def ask_choice(input_text, choices,  *, func_desc=None):
+def ask_choice(input_text, choices, *, func_desc=None):
     """Ask the user to choose from a list of choices
     `func_desc` will be called on list item for displaying
     and sorting the list. If not given, will default to
@@ -301,11 +187,11 @@ def ask_choice(input_text, choices,  *, func_desc=None):
     """
     if func_desc is None:
         func_desc = lambda x: x
-    info(green, "::", reset, input_text)
+    header(colorize('green', "::"), input_text)
     choices.sort(key=func_desc)
     for i, choice in enumerate(choices, start=1):
         choice_desc = func_desc(choice)
-        info("  ", blue, "%i" % i, reset, choice_desc)
+        print("  ", COLORS['blue'], "%i" % i, COLORS['reset'], choice_desc)
     keep_asking = True
     res = None
     while keep_asking:
@@ -318,10 +204,10 @@ def ask_choice(input_text, choices,  *, func_desc=None):
         try:
             index = int(answer)
         except ValueError:
-            info("Please enter a valid number")
+            print("Please enter a valid number")
             continue
         if index not in range(1, len(choices) + 1):
-            info(index, "is out of range")
+            print(index, "is out of range")
             continue
         res = choices[index - 1]
         keep_asking = False
@@ -333,9 +219,9 @@ def ask_yes_no(question, default=False):
     """Ask the user to answer by yes or no"""
     while True:
         if default:
-            info(COLORS['green'], "::", COLORS['reset'], question, "(Y/n)")
+            print(COLORS['green'], "::", COLORS['reset'], question, "(Y/n)")
         else:
-            info(COLORS['green'], "::", COLORS['reset'], question, "(y/N)")
+            print(COLORS['green'], "::", COLORS['reset'], question, "(y/N)")
         answer = read_input()
         if answer.lower() in ["y", "yes"]:
             return True
@@ -343,7 +229,7 @@ def ask_yes_no(question, default=False):
             return False
         if not answer:
             return default
-        warning("Please answer by 'y' (yes) or 'n' (no) ")
+        print("Please answer by 'y' (yes) or 'n' (no) ")
 
 
 def did_you_mean(msg, user_input, choices):
@@ -360,20 +246,20 @@ def did_you_mean(msg, user_input, choices):
 def example():
     """This is the example provided by Dimitri Merejkowsky.
     """
-    info_1("Important info")
-    info_2("Secondary info")
-    info("This is", COLORS['red'], "red")
-    info("this is", COLORS['bold'], "bold")
+    h1("Important info")
+    h2("Secondary info")
+    print("This is", colorize('red', 'red'))
+    print("this is", colorize('bold', 'bold'))
     list_of_things = ["foo", "bar", "baz"]
     for j, thing in enumerate(list_of_things):
         info_count(j, len(list_of_things), thing)
     info_progress(5, 20)
     info_progress(10, 20)
     info_progress(20, 20)
-    info("\n", CHECK, "all done")
+    print("\n", CHECK, "all done")
     fruits = ["apple", "orange", "banana"]
     answer = ask_choice("Choose a fruit", fruits)
-    info("You chose:", answer)
+    print("You chose:", answer)
 
 if __name__ == "__main__":
     example()
