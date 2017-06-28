@@ -28,11 +28,11 @@ def header(head, *args, **kwargs):
 
 def lv1(*args, **kwargs):
     """Print top level information"""
-    header(colorize('bold blue', '::'), *args, **kwargs)
+    header(colorize('bold green', '::'), *args, **kwargs)
 
 def lv2(*args, **kwargs):
     """Print secondary information"""
-    header(colorize('bold blue', '=>'), *args, **kwargs)
+    header(colorize('bold green', '=>'), *args, **kwargs)
 
 def lv3(*args, **kwargs):
     """Print block of text
@@ -58,7 +58,7 @@ def info_count(current, total, *rest, **kwargs):
     num_digits = len(str(total))  # lame, I know
     counter_format = "(%{}d/%d)".format(num_digits)
     counter_str = counter_format % (current + 1, total)
-    print(colorize('green', "*"), counter_str, COLORS['reset'], *rest, **kwargs)
+    print(colorize('blue', "*"), counter_str, COLORS['reset'], *rest, **kwargs)
 
 
 def progress_bar(
@@ -107,7 +107,7 @@ def tabs(num):
 def read_input():
     """ Read input from the user
     """
-    header(colorize('green', '>'), end="")
+    header(colorize('blue', '>'), end="")
     return input()
 
 
@@ -118,7 +118,7 @@ def ask_string(question, default=None):
     """
     if default:
         question += " (Default: %s)" % default
-    header(colorize('green', '::'), question)
+    header(colorize('blue', '::'), question)
     try:
         answer = read_input()
     except KeyboardInterrupt:
@@ -144,11 +144,11 @@ def ask_choice(input_text, choices, *, func_desc=None):
     """
     if func_desc is None:
         func_desc = lambda x: x
-    header(colorize('green', '::'), input_text)
+    header(colorize('blue', '::'), input_text)
     choices.sort(key=func_desc)
     for i, choice in enumerate(choices, start=1):
         choice_desc = func_desc(choice)
-        print("  ", COLORS['blue'], "%i" % i, COLORS['reset'], choice_desc)
+        print("  ", COLORS['green'], "%i" % i, COLORS['reset'], choice_desc)
     keep_asking = True
     res = None
     while keep_asking:
@@ -176,9 +176,9 @@ def ask_yes_no(question, default=False):
     """Ask the user to answer by yes or no"""
     while True:
         if default:
-            print(COLORS['green'], '::', COLORS['reset'], question, "(Y/n)")
+            print(COLORS['blue'], '::', COLORS['reset'], question, "(Y/n)")
         else:
-            print(COLORS['green'], '::', COLORS['reset'], question, "(y/N)")
+            print(COLORS['blue'], '::', COLORS['reset'], question, "(y/N)")
         answer = read_input()
         if answer.lower() in ["y", "yes"]:
             return True
