@@ -1,0 +1,9 @@
+- Regression caused on timestamp
+- Improve demos
+- Add delay feature
+- Come up with a catchier name
+- Write a setup.py
+- Docs and tests
+- Change API to include "word wrapping"
+- decorate for command prompt
+- make sure pipes and redirects work as expected on bash
