@@ -1,3 +1,4 @@
+#! /usr/bin/env python3
 # -*- coding: utf-8 -*-
 """This module provides helper functions for pretty, colorized TUIs.
 """
@@ -57,7 +58,7 @@ COLORS = {
 
 def colorize(colors, phrase):
     """Wrap a string in a color"""
-    as_string = ' '.join(COLORS[color] for color in colors.split())
+    as_string = ''.join(COLORS[color] for color in colors.split())
     return COLORS['reset'] + as_string + phrase + COLORS['reset']
 
 def _characters(color, as_unicode, as_ascii):
@@ -65,9 +66,10 @@ def _characters(color, as_unicode, as_ascii):
 
     return colorize(color, as_string)
 
-ELLIPSIS = _characters('reset', "…", "...")
+ELLIPSIS = _characters('', "…", "...")
 CHECK = _characters('green', "✓", "ok")
 CROSS = _characters('red', "❌", "ko")
+BLOCK = _characters('reset', '█', "#")
 
 # ARROW =
 # THUS =
@@ -78,25 +80,34 @@ def header(head, *args, **kwargs):
     sys.stdout.write(' ')
     print(*args, **kwargs)
 
-def h1(*args, **kwargs):
+def lv1(*args, **kwargs):
     """Print top level information"""
     header(colorize('bold blue', '::'), *args, **kwargs)
 
-def h2(*args, **kwargs):
+def lv2(*args, **kwargs):
     """Print secondary information"""
     header(colorize('bold blue', '=>'), *args, **kwargs)
+
+def lv3(*args, **kwargs):
+    """Print block of text
+    Note:
+        Not correctly implemented.
+    """
+    header('\t', *args, **kwargs)
 
 
 def info_count(current, total, *rest, **kwargs):
     """ Same as info, but displays a nice counter
     color will be reset
+
     >>> info_count(0, 4)
     * (1/4)
+
     >>> info_count(5, 12)
     * ( 5/12)
+
     >>> info_count(5, 10)
     * ( 5/10)
-
     """
     num_digits = len(str(total))  # lame, I know
     counter_format = "(%{}d/%d)".format(num_digits)
@@ -104,7 +115,7 @@ def info_count(current, total, *rest, **kwargs):
     print(colorize('green', "*"), counter_str, COLORS['reset'], *rest, **kwargs)
 
 
-def info_progress(
+def progress_bar(
         iteration,
         total,
         prefix='',
@@ -123,7 +134,7 @@ def info_progress(
     # https://gist.github.com/aubricus/f91fb55dc6ba5557fbab06119420dd6a
     percents = "{0:.1f}".format(100 * (iteration / float(total)))
     filled_length = int(round(bar_length * iteration / float(total)))
-    fill = '█' * filled_length + '-' * (bar_length - filled_length)
+    fill = BLOCK * filled_length + '-' * (bar_length - filled_length)
     sys.stdout.write('\r%s |%s| %s%s %s' %(prefix, fill, percents, '%', suffix))
     if iteration == total:
         sys.stdout.write('\n')
@@ -246,16 +257,16 @@ def did_you_mean(msg, user_input, choices):
 def example():
     """This is the example provided by Dimitri Merejkowsky.
     """
-    h1("Important info")
-    h2("Secondary info")
+    lv1("Important info")
+    lv2("Secondary info")
     print("This is", colorize('red', 'red'))
     print("this is", colorize('bold', 'bold'))
     list_of_things = ["foo", "bar", "baz"]
     for j, thing in enumerate(list_of_things):
         info_count(j, len(list_of_things), thing)
-    info_progress(5, 20)
-    info_progress(10, 20)
-    info_progress(20, 20)
+    progress_bar(5, 20)
+    progress_bar(10, 20)
+    progress_bar(20, 20)
     print("\n", CHECK, "all done")
     fruits = ["apple", "orange", "banana"]
     answer = ask_choice("Choose a fruit", fruits)
