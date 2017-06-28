@@ -8,6 +8,8 @@ import sys
 
 from colorama import init
 
+from colors_symbols import *
+
 init()
 # Global variable to store configuration
 
@@ -18,62 +20,6 @@ CONFIG = {
 }
 
 
-def _color(code, modifier=None):
-    code = '\033[%d' % code
-    code += ';%dm' % modifier if modifier is not None else 'm'
-    return code
-
-COLORS = {
-    # Styles
-    'reset': _color(0),
-    'bold': _color(1),
-    'faint': _color(2),
-    'standout': _color(3),
-    'underline': _color(4),
-    'blink': _color(5),
-    'overline': _color(6),
-
-    # Major colors
-    'black': _color(30),
-    'darkred': _color(31),
-    'darkgreen': _color(32),
-    'brown': _color(33),
-    'darkblue': _color(34),
-    'purple': _color(35),
-    'teal': _color(36),
-    'lightgray': _color(37),
-
-    # Minor colors
-    'darkgray': _color(30, 1),
-    'red': _color(31, 1),
-    'green': _color(32, 1),
-    'yellow': _color(33, 1),
-    'blue': _color(34, 1),
-    'fuchsia': _color(35, 1),
-    'turquoise': _color(36, 1),
-    'white': _color(37, 1),
-}
-
-# Other nice-to-have characters:
-
-def colorize(colors, phrase):
-    """Wrap a string in a color"""
-    as_string = ''.join(COLORS[color] for color in colors.split())
-    return COLORS['reset'] + as_string + phrase + COLORS['reset']
-
-def _characters(color, as_unicode, as_ascii):
-    as_string = as_unicode if os.name != 'nt' else as_ascii
-
-    return colorize(color, as_string)
-
-ELLIPSIS = _characters('', "…", "...")
-CHECK = _characters('green', "✓", "ok")
-CROSS = _characters('red', "❌", "ko")
-BLOCK = _characters('reset', '█', "#")
-
-# ARROW =
-# THUS =
-
 def header(head, *args, **kwargs):
     """Processing head needs improvement"""
     sys.stdout.write(head)
@@ -82,11 +28,11 @@ def header(head, *args, **kwargs):
 
 def lv1(*args, **kwargs):
     """Print top level information"""
-    header(colorize('bold blue', '::'), *args, **kwargs)
+    header(colorize('bold blue', TRIANGLE), *args, **kwargs)
 
 def lv2(*args, **kwargs):
     """Print secondary information"""
-    header(colorize('bold blue', '=>'), *args, **kwargs)
+    header(colorize('bold blue', ARROW), *args, **kwargs)
 
 def lv3(*args, **kwargs):
     """Print block of text
@@ -172,7 +118,7 @@ def ask_string(question, default=None):
     """
     if default:
         question += " (Default: %s)" % default
-    header(colorize('green', "::"), question)
+    header(colorize('green', TRIANGLE), question)
     try:
         answer = read_input()
     except KeyboardInterrupt:
@@ -198,7 +144,7 @@ def ask_choice(input_text, choices, *, func_desc=None):
     """
     if func_desc is None:
         func_desc = lambda x: x
-    header(colorize('green', "::"), input_text)
+    header(colorize('green', TRIANGLE), input_text)
     choices.sort(key=func_desc)
     for i, choice in enumerate(choices, start=1):
         choice_desc = func_desc(choice)
@@ -230,9 +176,9 @@ def ask_yes_no(question, default=False):
     """Ask the user to answer by yes or no"""
     while True:
         if default:
-            print(COLORS['green'], "::", COLORS['reset'], question, "(Y/n)")
+            print(COLORS['green'], TRIANGLE, COLORS['reset'], question, "(Y/n)")
         else:
-            print(COLORS['green'], "::", COLORS['reset'], question, "(y/N)")
+            print(COLORS['green'], TRIANGLE, COLORS['reset'], question, "(y/N)")
         answer = read_input()
         if answer.lower() in ["y", "yes"]:
             return True
