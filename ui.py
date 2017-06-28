@@ -28,11 +28,11 @@ def header(head, *args, **kwargs):
 
 def lv1(*args, **kwargs):
     """Print top level information"""
-    header(colorize('bold blue', TRIANGLE), *args, **kwargs)
+    header(colorize('bold blue', '::'), *args, **kwargs)
 
 def lv2(*args, **kwargs):
     """Print secondary information"""
-    header(colorize('bold blue', ARROW), *args, **kwargs)
+    header(colorize('bold blue', '=>'), *args, **kwargs)
 
 def lv3(*args, **kwargs):
     """Print block of text
@@ -118,7 +118,7 @@ def ask_string(question, default=None):
     """
     if default:
         question += " (Default: %s)" % default
-    header(colorize('green', TRIANGLE), question)
+    header(colorize('green', '::'), question)
     try:
         answer = read_input()
     except KeyboardInterrupt:
@@ -144,7 +144,7 @@ def ask_choice(input_text, choices, *, func_desc=None):
     """
     if func_desc is None:
         func_desc = lambda x: x
-    header(colorize('green', TRIANGLE), input_text)
+    header(colorize('green', '::'), input_text)
     choices.sort(key=func_desc)
     for i, choice in enumerate(choices, start=1):
         choice_desc = func_desc(choice)
@@ -176,9 +176,9 @@ def ask_yes_no(question, default=False):
     """Ask the user to answer by yes or no"""
     while True:
         if default:
-            print(COLORS['green'], TRIANGLE, COLORS['reset'], question, "(Y/n)")
+            print(COLORS['green'], '::', COLORS['reset'], question, "(Y/n)")
         else:
-            print(COLORS['green'], TRIANGLE, COLORS['reset'], question, "(y/N)")
+            print(COLORS['green'], '::', COLORS['reset'], question, "(y/N)")
         answer = read_input()
         if answer.lower() in ["y", "yes"]:
             return True

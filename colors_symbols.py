@@ -42,20 +42,16 @@ COLORS = {
 
 # Other nice-to-have characters:
 
-def colorize(colors, phrase, wrap=True):
+def colorize(colors, phrase):
     """Wrap a string in a color"""
     as_string = ''.join(COLORS[color] for color in colors.split())
-    if wrap:
-        return COLORS['reset'] + as_string + phrase + COLORS['reset']
-    return as_string + phrase
+    return COLORS['reset'] + as_string + phrase + COLORS['reset']
 
-def _characters(color, as_unicode, as_ascii, wrap=True):
+def _characters(color, as_unicode, as_ascii):
     as_string = as_unicode if os.name != 'nt' else as_ascii
-    return colorize(color, as_string, wrap)
+    return colorize(color, as_string)
 
 ELLIPSIS = _characters('', "…", "...")
 CHECK = _characters('green', "✓", "ok")
 CROSS = _characters('red', "❌", "ko")
 BLOCK = _characters('reset', '█', "#")
-ARROW = _characters('bold', "→", "=>", wrap=False)
-TRIANGLE = _characters('bold', "∴", "::", wrap=False)
