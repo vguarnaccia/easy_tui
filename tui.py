@@ -20,45 +20,53 @@ CONFIG = {
 }
 
 
-def header(head, *args, **kwargs):
-    """Processing head needs improvement"""
-    sys.stdout.write(head)
-    sys.stdout.write(' ')
+def say(begin, *args, **kwargs):
+    """Print with a beginning string.
+
+    Just like print but requires a leading string.
+
+    Example:
+        >>> say('::', 'Open the pod bay doors!')
+        :: Open the pod bay doors!
+    """
+    print(begin, end=' ')
     print(*args, **kwargs)
 
-def lv1(*args, **kwargs):
+def say1(*args, **kwargs):
     """Print top level information"""
-    header(colorize('bold green', '::'), *args, **kwargs)
+    important = colorize('bold green', '::')
+    say(important, *args, **kwargs)
 
-def lv2(*args, **kwargs):
+def say2(*args, **kwargs):
     """Print secondary information"""
-    header(colorize('bold green', '=>'), *args, **kwargs)
+    relevant = colorize('bold green', '=>')
+    say(relevant, *args, **kwargs)
 
-def lv3(*args, **kwargs):
-    """Print block of text
-    Note:
-        Not correctly implemented.
-    """
-    header('\t', *args, **kwargs)
+def say3(*args, **kwargs):
+    """Print block of text"""
+    for block in args:
+        for line in block.splitlines():
+            say(4 * ' ', line, **kwargs)
 
 
-def info_count(current, total, *rest, **kwargs):
-    """ Same as info, but displays a nice counter
-    color will be reset
-
-    >>> info_count(0, 4)
-    * (1/4)
+def countdown(current, total, *args, **kwargs):
+    """Print prefixed with a countdown. Starts from 0.
+    >>> info_count(0, 4 'item 1')
+    * (1/4) item 1
 
     >>> info_count(5, 12)
     * ( 5/12)
 
-    >>> info_count(5, 10)
-    * ( 5/10)
+    >>> info_count(5, 10, 'first', 'second', 'third')
+    * ( 5/10) first second third
     """
-    num_digits = len(str(total))  # lame, I know
-    counter_format = "(%{}d/%d)".format(num_digits)
-    counter_str = counter_format % (current + 1, total)
-    print(colorize('blue', "*"), counter_str, COLORS['reset'], *rest, **kwargs)
+    counter_str = "{0} ({1:{width}d}/{2})".format(
+        colorize('blue', "*"),
+        current+1,
+        total,
+        width=len(str(total))
+    )
+    say(counter_str, *args, **kwargs)
 
 
 def progress_bar(
@@ -87,46 +95,44 @@ def progress_bar(
     sys.stdout.flush()
 
 
-
-def indent_iterable(elems, num=2):
-    """Indent an iterable."""
-    return [" " * num + l for l in elems]
-
-
-def indent(text, num=2):
-    """Indent a piece of text."""
-    lines = text.splitlines()
-    return '\n'.join(indent_iterable(lines, num=num))
-
-
-def tabs(num):
-    """ Compute a blank tab """
-    return "  " * num
-
-
 def read_input():
-    """ Read input from the user
-    """
-    header(colorize('blue', '>'), end="")
-    return input()
+    """ Read input from the user"""
+    return input(colorize('blue', '> '))
 
 
-def ask_string(question, default=None):
-    """Ask the user to enter something.
-
-    Returns what the user entered
-    """
+def ask_string(question, default=''):
+    """Ask the user to enter something"""
     if default:
         question += " (Default: %s)" % default
-    header(colorize('blue', '::'), question)
-    try:
-        answer = read_input()
-    except KeyboardInterrupt:
-        return default
-    if not answer:
-        return default
-    return answer
+    say(colorize('blue', '::'), question)
+    answer = read_input()
+    return answer if answer else default
 
+
+def ask_yes_no(question, default=False):
+    """Ask the user to answer by yes or no"""
+    while True:
+        say(colorize('blue', '::'), question, '[Y/n]' if default else  '[y/N]')
+        answer = read_input()
+        if answer.lower() in ["y", "yes"]:
+            return True
+        if answer.lower() in ["n", "no"]:
+            return False
+        if not answer:
+            return default
+        print("Please answer by 'y' (yes) or 'n' (no) ")
+
+
+def did_you_mean(msg, user_input, choices):
+    """Present user with iterable of choices"""
+    if not choices:
+        return msg
+    result = {
+        difflib.SequenceMatcher(
+            a=user_input,
+            b=choice).ratio(): choice for choice in choices}
+    msg += "\nDid you mean: %s?" % result[max(result)]
+    return msg
 
 def ask_choice(input_text, choices, *, func_desc=None):
     """Ask the user to choose from a list of choices
@@ -144,11 +150,11 @@ def ask_choice(input_text, choices, *, func_desc=None):
     """
     if func_desc is None:
         func_desc = lambda x: x
-    header(colorize('blue', '::'), input_text)
+    say(colorize('blue', '::'), input_text)
     choices.sort(key=func_desc)
     for i, choice in enumerate(choices, start=1):
         choice_desc = func_desc(choice)
-        print("  ", COLORS['green'], "%i" % i, COLORS['reset'], choice_desc)
+        print("  ", COLORS['blue'], "%i" % i, COLORS['reset'], choice_desc)
     keep_asking = True
     res = None
     while keep_asking:
@@ -172,44 +178,16 @@ def ask_choice(input_text, choices, *, func_desc=None):
     return res
 
 
-def ask_yes_no(question, default=False):
-    """Ask the user to answer by yes or no"""
-    while True:
-        if default:
-            print(COLORS['blue'], '::', COLORS['reset'], question, "(Y/n)")
-        else:
-            print(COLORS['blue'], '::', COLORS['reset'], question, "(y/N)")
-        answer = read_input()
-        if answer.lower() in ["y", "yes"]:
-            return True
-        if answer.lower() in ["n", "no"]:
-            return False
-        if not answer:
-            return default
-        print("Please answer by 'y' (yes) or 'n' (no) ")
-
-
-def did_you_mean(msg, user_input, choices):
-    """Present user with iterable of choices"""
-    if not choices:
-        return msg
-    result = {
-        difflib.SequenceMatcher(
-            a=user_input,
-            b=choice).ratio(): choice for choice in choices}
-    msg += "\nDid you mean: %s?" % result[max(result)]
-    return msg
-
 def example():
     """This is the example provided by Dimitri Merejkowsky.
     """
-    lv1("Important info")
-    lv2("Secondary info")
-    print("This is", colorize('red', 'red'))
-    print("this is", colorize('bold', 'bold'))
+    say1("Important info")
+    say2("Secondary info")
+    say3("This is", colorize('red', 'red'))
+    say3("this is", colorize('bold', 'bold'))
     list_of_things = ["foo", "bar", "baz"]
     for j, thing in enumerate(list_of_things):
-        info_count(j, len(list_of_things), thing)
+        countdown(j, len(list_of_things), thing)
     progress_bar(5, 20)
     progress_bar(10, 20)
     progress_bar(20, 20)
