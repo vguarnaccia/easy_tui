@@ -1,0 +1,4 @@
+- Improve demos
+- Write a setup.py
+- decorate for command prompt
+- make sure pipes and redirects work as expected on bash
