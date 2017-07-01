@@ -52,6 +52,6 @@ def _characters(color, as_unicode, as_ascii):
     return colorize(color, as_string)
 
 ELLIPSIS = _characters('lightgray', 2 * "…", "...")
-CHECK = _characters('green', "✓", "ok")
-CROSS = _characters('red', "❌", "ko")
+CHECK = _characters('green', "✓", "Done")
+CROSS = _characters('red', "❌", "Fail")
 BLOCK = _characters('reset', '█', "#")

@@ -2,13 +2,12 @@
 # -*- coding: utf-8 -*-
 """This module provides helper functions for pretty, colorized TUIs.
 """
-import difflib
 import os
 import sys
 
 from colorama import init
 
-from colors_symbols import *
+from colors_symbols import COLORS, colorize, ELLIPSIS, CHECK, CROSS, BLOCK
 
 init()
 # Global variable to store configuration
@@ -98,7 +97,7 @@ def progress_bar(
     sys.stdout.flush()
 
 
-def read_input():
+def _input():
     """ Read input from the user"""
     return input(colorize('blue', '> '))
 
@@ -108,7 +107,7 @@ def ask_string(question, default=''):
     if default:
         question += " (Default: %s)" % default
     say(colorize('blue', '::'), question)
-    answer = read_input()
+    answer = _input()
     return answer if answer else default
 
 
@@ -116,7 +115,7 @@ def ask_bool(question, default=False):
     """Ask the user to answer by yes or no"""
     while True:
         say(colorize('blue', '::'), question, '[Y/n]' if default else  '[y/N]')
-        answer = read_input()
+        answer = _input()
         if answer.lower() in ["y", "yes"]:
             return True
         if answer.lower() in ["n", "no"]:
@@ -126,23 +125,10 @@ def ask_bool(question, default=False):
         print("Please answer by 'y' (yes) or 'n' (no) ")
 
 
-def ask_choice(input_text, choices, *, func_desc=None):
-    """Ask the user to choose from a list of choices
-    `func_desc` will be called on list item for displaying
-    and sorting the list. If not given, will default to
-    the identity function
-
-    Will loop until:
-        * the user enters a valid index
-        * or he hits ctrl-c
-        * or he leaves the prompt empty
-
-    In the last two cases, None is returned
-
+def ask_choice(question, choices, *, func_desc=None):
+    """Ask the user to choose from a list of choices.
     """
-    if func_desc is None:
-        func_desc = lambda x: x
-    say(colorize('blue', '::'), input_text)
+    say(colorize('blue', '::'), question)
     choices.sort(key=func_desc)
     for i, choice in enumerate(choices, start=1):
         choice_desc = func_desc(choice)
@@ -151,7 +137,7 @@ def ask_choice(input_text, choices, *, func_desc=None):
     res = None
     while keep_asking:
         try:
-            answer = read_input()
+            answer = _input()
         except KeyboardInterrupt:
             return None
         if not answer:
