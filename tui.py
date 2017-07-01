@@ -3,20 +3,11 @@
 """This module provides helper functions for pretty, colorized TUIs.
 """
 
-import os
-
 from colorama import init
 
 from colors_symbols import CHECK, COLORS, CROSS, ELLIPSIS, colorize
 
 init()
-# Global variable to store configuration
-
-CONFIG = {
-    "verbose": os.environ.get("VERBOSE"),
-    "quiet": False,
-    "timestamp": False,
-}
 
 
 def say(begin, *args, **kwargs):
@@ -82,7 +73,9 @@ def ask_string(question, default=''):
         question += " (Default: %s)" % default
     say(colorize('blue', '::'), question)
     answer = _input()
-    return answer if answer else default
+    result = answer if answer else default
+    print('You chose:', result)
+    return result
 
 
 def ask_bool(question, default=False):
@@ -91,10 +84,14 @@ def ask_bool(question, default=False):
         say(colorize('blue', '::'), question, '[Y/n]' if default else '[y/N]')
         answer = _input()
         if answer.lower() in ["y", "yes"]:
+            print('You chose: yes')
             return True
         if answer.lower() in ["n", "no"]:
+            print('You chose: no')
             return False
         if not answer:
+            answer = 'yes' if default else 'no'
+            print('You chose:', answer)
             return default
         print("Please answer by 'y' (yes) or 'n' (no) ")
 
@@ -118,20 +115,22 @@ def ask_choice(question, choices):
             if answer not in range(1, len(choices) + 1):
                 print(answer, "is out of range")
             else:
-                return choices[answer - 1]
+                choice = choices[answer - 1]
+                print('You chose:', choice)
+                return choice
 
 
 def proc(desc):
     """Decorate top level function to print success for failure"""
     def _decor(func):
         def _wrap(*args, **kwargs):
-            print(colorize('green', func.__name__ + ':'), desc, ELLIPSIS * 2, end='')
+            print(colorize('green', func.__name__ + ':'), desc + ELLIPSIS * 2, end=' ', flush=True)
             try:
-                return func(*args, **kwargs)
+                result = func(*args, **kwargs)
             except:
                 print(CROSS)
                 raise
-            else:
-                print(CHECK)
+            print(CHECK)
+            return result
         return _wrap
     return _decor
