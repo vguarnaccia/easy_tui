@@ -42,15 +42,15 @@ def enumerations_demo():
         tui.countdown(i, 3, thing)
 
 
-@tui.proc("Isn't it great when things work out?")
+@tui.proc(desc="Isn't it great when things work out?")
 def this_function_will_succeed():
     """Dumby function"""
     time.sleep(3)
 
 
-@tui.proc("But even when they don't, we stay positive")
-def but_this_fails():
-    """Dumby function"""
+@tui.proc()
+def fails_always():
+    """This function throws an error"""
     time.sleep(3)
     raise NotImplementedError
 
@@ -74,9 +74,10 @@ def main():
     input_options_demo()
     this_function_will_succeed()
     try:
-        but_this_fails()
+        fails_always()
     except NotImplementedError:
-        tui.say1('Thanks!')
+        print()
+        tui.say1(tui.colorize('bold blue', 'Thanks!'))
 
 
 if __name__ == '__main__':
