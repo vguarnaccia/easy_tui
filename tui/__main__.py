@@ -6,6 +6,8 @@ Example:
     $ python core_example.py
 """
 
+from __future__ import print_function
+
 import time
 
 from . import core
@@ -60,7 +62,7 @@ def input_options_demo():
     core.say1('core is very good at asking questions')
     core.ask_string("What's your favorite website?", default=r'https://github.com')
     core.ask_choice("whose your favorite?",
-                   choices=['Doc', 'Grumpy', 'Happy', 'Sleepy', 'Bashful', 'Sneezy', 'Dopey'])
+                    choices=['Doc', 'Grumpy', 'Happy', 'Sleepy', 'Bashful', 'Sneezy', 'Dopey'])
     answer = core.ask_bool('So, do you want to see something cool?', default=True)
     print(core.colorize('bold', 'GREAT!' if answer else 'Too bad.'))
 

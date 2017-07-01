@@ -8,6 +8,12 @@ All responsibility for correct coloring and stream handling has been removed to 
 If you want a pretty progress bar, take a look at `tqdm <https://pypi.python.org/pypi/tqdm>`_.
 """
 
+from __future__ import print_function
+from __future__ import absolute_import
+
+from builtins import input
+from builtins import str
+from builtins import range
 from functools import partial, wraps
 
 from .colors_symbols import CHECK, COLORS, CROSS, ELLIPSIS, colorize
@@ -100,7 +106,7 @@ def countdown(current, total, *args, **kwargs):
 def _input():
     """Read input from the user."""
     say(colorize('blue', '>'), end='')  # this is not strip if made an argument to input
-    return input()
+    return eval(input())
 
 
 def ask_string(question, default=''):
@@ -183,7 +189,7 @@ def ask_choice(question, choices):
         except ValueError:
             print("Please enter a valid number")
         else:
-            if answer not in range(1, len(choices) + 1):
+            if answer not in list(range(1, len(choices) + 1)):
                 print(answer, "is out of range")
             else:
                 choice = choices[answer - 1]
