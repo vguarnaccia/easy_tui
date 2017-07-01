@@ -1,13 +1,14 @@
 #! /usr/bin/env python3
 # -*- coding: utf-8 -*-
 """This file contains the helper functions and global variables from the module"""
-
 import os
+
 
 def _color(code, modifier=None):
     code = '\033[%d' % code
     code += ';%dm' % modifier if modifier is not None else 'm'
     return code
+
 
 COLORS = {
     # Styles
@@ -42,14 +43,17 @@ COLORS = {
 
 # Other nice-to-have characters:
 
+
 def colorize(colors, phrase):
     """Wrap a string in a color"""
     as_string = ''.join(COLORS[color] for color in colors.split())
     return COLORS['reset'] + as_string + phrase + COLORS['reset']
 
+
 def _characters(color, as_unicode, as_ascii):
     as_string = as_unicode if os.name != 'nt' else as_ascii
     return colorize(color, as_string)
+
 
 ELLIPSIS = _characters('lightgray', 2 * "…", "...")
 CHECK = _characters('green', "✓", "Done")
