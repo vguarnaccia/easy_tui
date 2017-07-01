@@ -3,6 +3,8 @@
 """This module provides helper functions for pretty, colorized TUIs.
 """
 
+from functools import partial, wraps
+
 from colorama import init
 
 from colors_symbols import CHECK, COLORS, CROSS, ELLIPSIS, colorize
@@ -120,11 +122,31 @@ def ask_choice(question, choices):
                 return choice
 
 
-def proc(desc):
-    """Decorate top level function to print success for failure"""
+def proc(name=None, desc=None):
+    """Decorate top level function to print success for failure.
+    Usage:
+
+        @proc
+        def foo(x, y, x):
+            ...
+
+
+    Args:
+        name (str, optional): Defaults to the function's name.
+        desc (str, optional): Defaults to the function's docstring.
+
+    Return:
+        Prints the following ascci string, or a colorized unicode variant:
+            {name}: {desc}...... Done/Fail
+    """
     def _decor(func):
-        def _wrap(*args, **kwargs):
-            print(colorize('green', func.__name__ + ':'), desc + ELLIPSIS * 2, end=' ', flush=True)
+        @wraps(func)
+        def _wrap(name, desc, *args, **kwargs):
+            if desc is None:
+                desc = func.__doc__.split('\n', 1)[0]  # first line of docstring
+            if name is None:
+                name = func.__name__
+            print(colorize('green', name + ':'), desc + ELLIPSIS * 2, end=' ', flush=True)
             try:
                 result = func(*args, **kwargs)
             except:
@@ -132,5 +154,5 @@ def proc(desc):
                 raise
             print(CHECK)
             return result
-        return _wrap
+        return partial(_wrap, name, desc)
     return _decor
