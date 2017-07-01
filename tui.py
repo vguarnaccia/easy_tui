@@ -7,7 +7,7 @@ import sys
 
 from colorama import init
 
-from colors_symbols import COLORS, colorize, ELLIPSIS, CHECK, CROSS, BLOCK
+from colors_symbols import BLOCK, CHECK, COLORS, CROSS, ELLIPSIS, colorize
 
 init()
 # Global variable to store configuration
@@ -71,32 +71,6 @@ def countdown(current, total, *args, **kwargs):
     say(counter_str, *args, **kwargs)
 
 
-def progress_bar(
-        iteration,
-        total,
-        prefix='',
-        suffix='',
-        bar_length=100):
-    """
-    Call in a loop to create terminal progress bar
-    @params:
-        iteration   - Required  : current iteration (Int)
-        total       - Required  : total iterations (Int)
-        prefix      - Optional  : prefix string (Str)
-        suffix      - Optional  : suffix string (Str)
-        decimals    - Optional  : positive number of decimals in percent complete (Int)
-        bar_length  - Optional  : character length of bar (Int)
-    """
-    # https://gist.github.com/aubricus/f91fb55dc6ba5557fbab06119420dd6a
-    percents = "{0:.1f}".format(100 * (iteration / float(total)))
-    filled_length = int(round(bar_length * iteration / float(total)))
-    fill = BLOCK * filled_length + '-' * (bar_length - filled_length)
-    sys.stdout.write('\r%s |%s| %s%s %s' %(prefix, fill, percents, '%', suffix))
-    if iteration == total:
-        sys.stdout.write('\n')
-    sys.stdout.flush()
-
-
 def _input():
     """ Read input from the user"""
     return input(colorize('blue', '> '))
@@ -125,54 +99,23 @@ def ask_bool(question, default=False):
         print("Please answer by 'y' (yes) or 'n' (no) ")
 
 
-def ask_choice(question, choices, *, func_desc=None):
-    """Ask the user to choose from a list of choices.
-    """
+def ask_choice(question, choices):
+    """Ask the user to choose from a list of choices."""
     say(colorize('blue', '::'), question)
-    choices.sort(key=func_desc)
+    choices = list(choices)
     for i, choice in enumerate(choices, start=1):
-        choice_desc = func_desc(choice)
-        print("  ", COLORS['blue'], "%i" % i, COLORS['reset'], choice_desc)
-    keep_asking = True
-    res = None
-    while keep_asking:
+        print("  ", COLORS['blue'], i, COLORS['reset'], choice)
+
+    # Keep asking user for valid input. Fail on Ctrl-C
+    while True:
         try:
-            answer = _input()
+            answer = int(_input())
         except KeyboardInterrupt:
-            return None
-        if not answer:
-            return None
-        try:
-            index = int(answer)
+            raise  # there's potential here
         except ValueError:
             print("Please enter a valid number")
-            continue
-        if index not in range(1, len(choices) + 1):
-            print(index, "is out of range")
-            continue
-        res = choices[index - 1]
-        keep_asking = False
-
-    return res
-
-
-def example():
-    """This is the example provided by Dimitri Merejkowsky.
-    """
-    say1("Important info")
-    say2("Secondary info")
-    say3("This is", colorize('red', 'red'))
-    say3("this is", colorize('bold', 'bold'))
-    list_of_things = ["foo", "bar", "baz"]
-    for j, thing in enumerate(list_of_things):
-        countdown(j, len(list_of_things), thing)
-    progress_bar(5, 20)
-    progress_bar(10, 20)
-    progress_bar(20, 20)
-    print("\n", CHECK, "all done")
-    fruits = ["apple", "orange", "banana"]
-    answer = ask_choice("Choose a fruit", fruits)
-    print("You chose:", answer)
-
-if __name__ == "__main__":
-    example()
+        else:
+            if answer not in range(1, len(choices) + 1):
+                print(answer, "is out of range")
+            else:
+                return choices[answer - 1]
