@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 """This module provides helper functions for pretty, colorized TUIs.
 """
+
 import os
-import sys
 
 from colorama import init
 
-from colors_symbols import BLOCK, CHECK, COLORS, CROSS, ELLIPSIS, colorize
+from colors_symbols import CHECK, COLORS, CROSS, ELLIPSIS, colorize
 
 init()
 # Global variable to store configuration
@@ -119,3 +119,19 @@ def ask_choice(question, choices):
                 print(answer, "is out of range")
             else:
                 return choices[answer - 1]
+
+
+def proc(desc):
+    """Decorate top level function to print success for failure"""
+    def _decor(func):
+        def _wrap(*args, **kwargs):
+            print(colorize('green', func.__name__ + ':'), desc, ELLIPSIS * 2, end='')
+            try:
+                return func(*args, **kwargs)
+            except:
+                print(CROSS)
+                raise
+            else:
+                print(CHECK)
+        return _wrap
+    return _decor
