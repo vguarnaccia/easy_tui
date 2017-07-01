@@ -56,5 +56,5 @@ def _characters(color, as_unicode, as_ascii):
 
 
 ELLIPSIS = _characters('lightgray', 2 * "…", "...")
-CHECK = _characters('green', "✓", "Done")
+CHECK = _characters('green', "✔", "Done")
 CROSS = _characters('red', "❌", "Fail")
