@@ -10,8 +10,7 @@ If you want a pretty progress bar, take a look at `tqdm <https://pypi.python.org
 
 from functools import partial, wraps
 
-from colors_symbols import CHECK, COLORS, CROSS, ELLIPSIS, colorize
-
+from .colors_symbols import CHECK, COLORS, CROSS, ELLIPSIS, colorize
 
 
 def say(begin, *args, **kwargs):
@@ -29,26 +28,26 @@ def say(begin, *args, **kwargs):
 
 
 def say1(*args, **kwargs):
-    """Print top level information.
+    """Print top level information, prefixed with a green `::`.
 
     Example:
         >>> say1('Make sure to run apt-get with sudo.')
-        :: Make sure to run apt-get with sudo.
+        \x1b[0m\x1b[32;1m::\x1b[0m Make sure to run apt-get with sudo.
 
     """
-    important = colorize('bold green', '::')
+    important = colorize('green', '::')
     say(important, *args, **kwargs)
 
 
 def say2(*args, **kwargs):
-    """Print secondary information.
+    """Print secondary information, prefixed with a green `=>`.
 
     Example:
         >>> say2('This is some relevant information')
-        => This is some relevant information
+        \x1b[0m\x1b[32;1m=>\x1b[0m This is some relevant information
 
     """
-    relevant = colorize('bold green', '=>')
+    relevant = colorize('green', '=>')
     say(relevant, *args, **kwargs)
 
 
@@ -75,13 +74,13 @@ def countdown(current, total, *args, **kwargs):
 
     Examples:
             >>> countdown(0, 4, 'item 1')
-            * (1/4) item 1
+            \x1b[0m\x1b[34;1m*\x1b[0m (1/4) item 1
 
             >>> countdown(4, 12)
-            * ( 5/12)
+            \x1b[0m\x1b[34;1m*\x1b[0m ( 5/12)
 
             >>> countdown(4, 10, 'first', 'second', 'third')
-            * ( 5/10) first second third
+            \x1b[0m\x1b[34;1m*\x1b[0m ( 5/10) first second third
 
     """
     counter_str = "{0} ({1:{width}d}/{2})".format(
@@ -239,3 +238,8 @@ def proc(name=None, desc=None):
             return result
         return partial(_wrap, name, desc)
     return _decor
+
+
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()
