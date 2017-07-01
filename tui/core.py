@@ -1,4 +1,4 @@
-#! /usr/bin/env python3
+#! /usr/bin/env python
 # -*- coding: utf-8 -*-
 """This module provides helper functions for pretty, colorized TUIs.
 All `sayN` functions take the same args and kwargs as `print`.
@@ -10,11 +10,8 @@ If you want a pretty progress bar, take a look at `tqdm <https://pypi.python.org
 
 from functools import partial, wraps
 
-from colorama import init
-
 from colors_symbols import CHECK, COLORS, CROSS, ELLIPSIS, colorize
 
-init()
 
 
 def say(begin, *args, **kwargs):
@@ -23,8 +20,8 @@ def say(begin, *args, **kwargs):
     Just like print but requires a leading string.
 
     Example:
-            >>> say('::', 'Open the pod bay doors!')
-            :: Open the pod bay doors!
+        >>> say('::', 'Open the pod bay doors!')
+        :: Open the pod bay doors!
 
     """
     print(begin, end=' ')
@@ -35,8 +32,8 @@ def say1(*args, **kwargs):
     """Print top level information.
 
     Example:
-            >>> say1('Make sure to run apt-get with sudo.')
-            :: Make sure to run apt-get with sudo.
+        >>> say1('Make sure to run apt-get with sudo.')
+        :: Make sure to run apt-get with sudo.
 
     """
     important = colorize('bold green', '::')
@@ -44,11 +41,11 @@ def say1(*args, **kwargs):
 
 
 def say2(*args, **kwargs):
-    """Print secondary information
+    """Print secondary information.
 
     Example:
-            >>> say2('This is some relevant information')
-            => This is some relevant information
+        >>> say2('This is some relevant information')
+        => This is some relevant information
 
     """
     relevant = colorize('bold green', '=>')
@@ -63,20 +60,20 @@ def say3(*args, **kwargs):
             ... long paragraph
             ... over many lines
             ... ''')
-                 This a a very,
-                 long paragraph
-                 over many lines
+                This a a very,
+                long paragraph
+                over many lines
 
     """
     for block in args:
         for line in block.splitlines():
-            say(4 * ' ', line, **kwargs)
+            say(3 * ' ', line, **kwargs)
 
 
 def countdown(current, total, *args, **kwargs):
     """Print prefixed with a countdown. Starts from 0.
 
-    Example:
+    Examples:
             >>> countdown(0, 4, 'item 1')
             * (1/4) item 1
 
@@ -85,6 +82,7 @@ def countdown(current, total, *args, **kwargs):
 
             >>> countdown(4, 10, 'first', 'second', 'third')
             * ( 5/10) first second third
+
     """
     counter_str = "{0} ({1:{width}d}/{2})".format(
         colorize('blue', "*"),
@@ -92,16 +90,22 @@ def countdown(current, total, *args, **kwargs):
         total,
         width=len(str(total))
     )
-    say(counter_str, *args, **kwargs)
+
+    # Avoid extraneous whitespace
+    if args or kwargs:
+        say(counter_str, *args, **kwargs)
+    else:
+        print(counter_str)
 
 
 def _input():
-    """Read input from the user"""
-    return input(colorize('blue', '> '))
+    """Read input from the user."""
+    say(colorize('blue', '>'), end='')  # this is not strip if made an argument to input
+    return input()
 
 
 def ask_string(question, default=''):
-    """Ask the user to enter something
+    """Ask the user to enter something.
 
     Example:
             >>> ask_string("What's your name?", default='No Bo Dy')  # doctest: +SKIP
@@ -121,7 +125,22 @@ def ask_string(question, default=''):
 
 
 def ask_bool(question, default=False):
-    """Ask the user to answer by yes or no"""
+    """Ask the user to answer by yes or no.
+
+    Examples:
+        >>> ask_bool('Do you use Linux?')  # doctest: +SKIP
+        :: Do you use Linux? [y/N]
+        > yes
+        You chose: yes
+        True
+
+        >>> ask_bool('Are you using python 3?', default=True)  # doctest: +SKIP
+        :: Are you using python 3? [Y/n]
+        >
+        You chose: yes
+        True
+
+    """
     while True:
         say(colorize('blue', '::'), question, '[Y/n]' if default else '[y/N]')
         answer = _input()
@@ -139,7 +158,18 @@ def ask_bool(question, default=False):
 
 
 def ask_choice(question, choices):
-    """Ask the user to choose from a list of choices."""
+    """Ask the user to choose from a list of choices.
+
+    Example:
+        >>> ask_choice('Which editor do you use?', choices=['vim', 'emacs'])  # doctest: +SKIP
+        :: Which editor do you use?
+            1  vim
+            2  emacs
+        > 1
+        You chose: vim
+        'vim'
+
+    """
     say(colorize('blue', '::'), question)
     choices = list(choices)
     for i, choice in enumerate(choices, start=1):
@@ -164,39 +194,42 @@ def ask_choice(question, choices):
 
 def proc(name=None, desc=None):
     """Decorate top level function to print success for failure.
-    Usage:
 
-            @proc
-            def foo(x, y, x):
-                    ...
+    Examples:
+        >>> @proc(desc='frobnicate for a while')  # doctest: +SKIP
+        ... def foo():
+        ...     pass
+        ...
+        >>> foo()  # doctest: +SKIP
+        foo: frobnicate for a while...... Done
 
+        >>> @proc()  # doctest: +SKIP
+        ... def bar():
+        ...     '''Bar raises an error.'''
+        ...     raise NotImplementedError
+        ...
+        >>> bar()  # doctest: +SKIP
+        bar: Bar raises an error...... Fail
+        Traceback (most recent call last):
+        File "<stdin>", line 1, in <module>
+        File "/home/vincent/code/python-tui/tui.py", line 216, in _wrap
+            name = func.__name__
+        File "<stdin>", line 4, in bar
+        NotImplementedError
 
     Args:
-            name (str, optional): Defaults to the function's name.
-            desc (str, optional): Defaults to the function's docstring.
+        name (str, optional): Defaults to the function's name.
+        desc (str, optional): Defaults to the function's docstrin
 
-    Return:
-            Prints the following ascci string, or a colorized unicode variant:
-                    {name}: {desc}...... Done/Fail
     """
     def _decor(func):
         @wraps(func)
         def _wrap(name, desc, *args, **kwargs):
             if desc is None:
-                desc = func.__doc__.split(
-                    '\n', 1)[0]  # first line of docstring
+                desc = func.__doc__.split('\n', 1)[0] if func.__doc__ else 'no description'
             if name is None:
                 name = func.__name__
-            print(
-                colorize(
-                    'green',
-                    name +
-                    ':'),
-                desc +
-                ELLIPSIS *
-                2,
-                end=' ',
-                flush=True)
+            print(colorize('green', name + ':'), desc + ELLIPSIS * 2, end=' ', flush=True)
             try:
                 result = func(*args, **kwargs)
             except BaseException:
@@ -206,9 +239,3 @@ def proc(name=None, desc=None):
             return result
         return partial(_wrap, name, desc)
     return _decor
-
-
-if __name__ == "__main__":
-    import doctest
-    init(strip=True)
-    doctest.testmod()
