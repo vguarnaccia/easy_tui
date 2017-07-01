@@ -32,15 +32,18 @@ def say(begin, *args, **kwargs):
     print(begin, end=' ')
     print(*args, **kwargs)
 
+
 def say1(*args, **kwargs):
     """Print top level information"""
     important = colorize('bold green', '::')
     say(important, *args, **kwargs)
 
+
 def say2(*args, **kwargs):
     """Print secondary information"""
     relevant = colorize('bold green', '=>')
     say(relevant, *args, **kwargs)
+
 
 def say3(*args, **kwargs):
     """Print block of text"""
@@ -109,7 +112,7 @@ def ask_string(question, default=''):
     return answer if answer else default
 
 
-def ask_yes_no(question, default=False):
+def ask_bool(question, default=False):
     """Ask the user to answer by yes or no"""
     while True:
         say(colorize('blue', '::'), question, '[Y/n]' if default else  '[y/N]')
@@ -122,17 +125,6 @@ def ask_yes_no(question, default=False):
             return default
         print("Please answer by 'y' (yes) or 'n' (no) ")
 
-
-def did_you_mean(msg, user_input, choices):
-    """Present user with iterable of choices"""
-    if not choices:
-        return msg
-    result = {
-        difflib.SequenceMatcher(
-            a=user_input,
-            b=choice).ratio(): choice for choice in choices}
-    msg += "\nDid you mean: %s?" % result[max(result)]
-    return msg
 
 def ask_choice(input_text, choices, *, func_desc=None):
     """Ask the user to choose from a list of choices
