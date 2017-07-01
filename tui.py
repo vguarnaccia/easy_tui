@@ -1,6 +1,11 @@
 #! /usr/bin/env python3
 # -*- coding: utf-8 -*-
 """This module provides helper functions for pretty, colorized TUIs.
+All `sayN` functions take the same args and kwargs as `print`.
+
+All responsibility for correct coloring and stream handling has been removed to print or colorama.
+
+If you want a pretty progress bar, take a look at `tqdm <https://pypi.python.org/pypi/tqdm>`_.
 """
 
 from functools import partial, wraps
@@ -18,27 +23,51 @@ def say(begin, *args, **kwargs):
     Just like print but requires a leading string.
 
     Example:
-        >>> say('::', 'Open the pod bay doors!')
-        :: Open the pod bay doors!
+            >>> say('::', 'Open the pod bay doors!')
+            :: Open the pod bay doors!
+
     """
     print(begin, end=' ')
     print(*args, **kwargs)
 
 
 def say1(*args, **kwargs):
-    """Print top level information"""
+    """Print top level information.
+
+    Example:
+            >>> say1('Make sure to run apt-get with sudo.')
+            :: Make sure to run apt-get with sudo.
+
+    """
     important = colorize('bold green', '::')
     say(important, *args, **kwargs)
 
 
 def say2(*args, **kwargs):
-    """Print secondary information"""
+    """Print secondary information
+
+    Example:
+            >>> say2('This is some relevant information')
+            => This is some relevant information
+
+    """
     relevant = colorize('bold green', '=>')
     say(relevant, *args, **kwargs)
 
 
 def say3(*args, **kwargs):
-    """Print block of text"""
+    """Print a block of text indented.
+
+    Example:
+            >>> say3('''This a a very,
+            ... long paragraph
+            ... over many lines
+            ... ''')
+                 This a a very,
+                 long paragraph
+                 over many lines
+
+    """
     for block in args:
         for line in block.splitlines():
             say(4 * ' ', line, **kwargs)
@@ -46,14 +75,16 @@ def say3(*args, **kwargs):
 
 def countdown(current, total, *args, **kwargs):
     """Print prefixed with a countdown. Starts from 0.
-    >>> info_count(0, 4 'item 1')
-    * (1/4) item 1
 
-    >>> info_count(5, 12)
-    * ( 5/12)
+    Example:
+            >>> countdown(0, 4, 'item 1')
+            * (1/4) item 1
 
-    >>> info_count(5, 10, 'first', 'second', 'third')
-    * ( 5/10) first second third
+            >>> countdown(4, 12)
+            * ( 5/12)
+
+            >>> countdown(4, 10, 'first', 'second', 'third')
+            * ( 5/10) first second third
     """
     counter_str = "{0} ({1:{width}d}/{2})".format(
         colorize('blue', "*"),
@@ -65,12 +96,21 @@ def countdown(current, total, *args, **kwargs):
 
 
 def _input():
-    """ Read input from the user"""
+    """Read input from the user"""
     return input(colorize('blue', '> '))
 
 
 def ask_string(question, default=''):
-    """Ask the user to enter something"""
+    """Ask the user to enter something
+
+    Example:
+            >>> ask_string("What's your name?", default='No Bo Dy')  # doctest: +SKIP
+            :: What's your name? (Default: No Bo Dy)
+            > Odysseus
+            You chose: Odysseus
+            'Odysseus'
+
+    """
     if default:
         question += " (Default: %s)" % default
     say(colorize('blue', '::'), question)
@@ -126,33 +166,49 @@ def proc(name=None, desc=None):
     """Decorate top level function to print success for failure.
     Usage:
 
-        @proc
-        def foo(x, y, x):
-            ...
+            @proc
+            def foo(x, y, x):
+                    ...
 
 
     Args:
-        name (str, optional): Defaults to the function's name.
-        desc (str, optional): Defaults to the function's docstring.
+            name (str, optional): Defaults to the function's name.
+            desc (str, optional): Defaults to the function's docstring.
 
     Return:
-        Prints the following ascci string, or a colorized unicode variant:
-            {name}: {desc}...... Done/Fail
+            Prints the following ascci string, or a colorized unicode variant:
+                    {name}: {desc}...... Done/Fail
     """
     def _decor(func):
         @wraps(func)
         def _wrap(name, desc, *args, **kwargs):
             if desc is None:
-                desc = func.__doc__.split('\n', 1)[0]  # first line of docstring
+                desc = func.__doc__.split(
+                    '\n', 1)[0]  # first line of docstring
             if name is None:
                 name = func.__name__
-            print(colorize('green', name + ':'), desc + ELLIPSIS * 2, end=' ', flush=True)
+            print(
+                colorize(
+                    'green',
+                    name +
+                    ':'),
+                desc +
+                ELLIPSIS *
+                2,
+                end=' ',
+                flush=True)
             try:
                 result = func(*args, **kwargs)
-            except:
+            except BaseException:
                 print(CROSS)
                 raise
             print(CHECK)
             return result
         return partial(_wrap, name, desc)
     return _decor
+
+
+if __name__ == "__main__":
+    import doctest
+    init(strip=True)
+    doctest.testmod()
