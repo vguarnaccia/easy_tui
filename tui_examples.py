@@ -15,13 +15,16 @@ def coloring_demo():
     for color in tui.COLORS:
         tui.say3(tui.colorize(color, color))
 
+
 def icon_demo():
     """Show btuilt-in unicode icons"""
     tui.say1('Did I forget to mention the ellipsis?', tui.ELLIPSIS)
     tui.say2('The check?', tui.CHECK)
     tui.say2('The cross?', tui.CROSS)
     tui.say2('The block?', tui.BLOCK)
-    tui.say3('They might not appear correctly on windows sadly, but they\'re super cool on bash!')
+    tui.say3(
+        'They might not appear correctly on windows sadly, but they\'re super cool on bash!')
+
 
 def enumerations_demo():
     """Demonstate enumerations and timestamps"""

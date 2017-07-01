@@ -64,7 +64,7 @@ def countdown(current, total, *args, **kwargs):
     """
     counter_str = "{0} ({1:{width}d}/{2})".format(
         colorize('blue', "*"),
-        current+1,
+        current + 1,
         total,
         width=len(str(total))
     )
@@ -88,7 +88,7 @@ def ask_string(question, default=''):
 def ask_bool(question, default=False):
     """Ask the user to answer by yes or no"""
     while True:
-        say(colorize('blue', '::'), question, '[Y/n]' if default else  '[y/N]')
+        say(colorize('blue', '::'), question, '[Y/n]' if default else '[y/N]')
         answer = _input()
         if answer.lower() in ["y", "yes"]:
             return True
