@@ -1,6 +1,8 @@
 ====================================
 Sample Terminal User Interface (TUI)
 ====================================
+.. image:: https://travis-ci.org/vguarnaccia/easy_tui.svg?branch=master
+    :target: https://travis-ci.org/vguarnaccia/easy_tui
 
 This is a small package inspired by the work of Dimitri Merejkowsky. 
 You can read about his project on dev.to (which is how I found it) or on 
