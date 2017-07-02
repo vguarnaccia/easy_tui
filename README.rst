@@ -11,22 +11,25 @@ Installation
 
 ::
 
-  pip install git+https://github.com/vguarnaccia/easy_tui.git
+    pip install git+https://github.com/vguarnaccia/easy_tui.git
 
 Update::
 
-  pip install --upgrade git+https://github.com/vguarnaccia/easy_tui.git
+    pip install --upgrade git+https://github.com/vguarnaccia/easy_tui.git
 
 Examples
 ========
 
 To see the latest interactive example::
 
-  python -m tui
+    python -m tui
+
+.. image:: https://asciinema.org/a/xJ6TffmNGkNigxkEB6jPxcKRM?size=medium
+    :target: https://asciinema.org/a/xJ6TffmNGkNigxkEB6jPxcKRM?size=medium
 
 Testing
 =======
 
 Run doctests with::
 
-  python -m tui.core
+    python -m tui.core
