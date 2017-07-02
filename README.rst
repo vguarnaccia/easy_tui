@@ -24,7 +24,7 @@ To see the latest interactive example::
 
     python -m tui
 
-.. image:: https://asciinema.org/a/xJ6TffmNGkNigxkEB6jPxcKRM?size=medium
+.. image:: https://asciinema.org/a/xJ6TffmNGkNigxkEB6jPxcKRM.png?size=medium
     :target: https://asciinema.org/a/xJ6TffmNGkNigxkEB6jPxcKRM?size=medium
 
 Testing
