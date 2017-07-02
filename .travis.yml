@@ -1,18 +1,20 @@
 language: python
 python:
-    - "2.7"
-    - "3.3"
-    - "3.4"
-    - "3.5"
-    - "3.6"
-    - "3.6-dev"
-    - "3.7-dev"
-    - "nightly"
-    - "pypy"
-    - "pypy3"
-    - "pypy-5.3.1"
+    - 2.7
+    - 3.3
+    - 3.4
+    - 3.5
+    - 3.6
+    - 3.6-dev
+    - 3.7-dev
+    - nightly
+    - pypy
+    - pypy3
+    - pypy-5.3.1
 install:
     - pip install -r requirements.txt
     - if [[ $TRAVIS_PYTHON_VERSION == 2* ]]; then pip install future; fi
+    - if [[ $TRAVIS_PYTHON_VERSION == 'pypy' ]]; then pip install future; fi
+    - if [[ $TRAVIS_PYTHON_VERSION == 'pypy-5.3.1' ]]; then pip install future; fi
 # call discover test suite for backwards compatibility
 script: python -m tui.core
