@@ -1,2 +1,0 @@
-- Write a setup.py
-- Extend README
