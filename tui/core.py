@@ -3,7 +3,8 @@
 """This module provides helper functions for pretty, colorized TUIs.
 All `sayN` functions take the same args and kwargs as `print`.
 
-All responsibility for correct coloring and stream handling has been removed to print or colorama.
+All responsibility for correct coloring and stream handling has been removed
+to print or colorama.
 
 If you want a pretty progress bar, take a look at `tqdm <https://pypi.python.org/pypi/tqdm>`_.
 """
@@ -86,12 +87,9 @@ def countdown(current, total, *args, **kwargs):
             \x1b[0m\x1b[34;1m*\x1b[0m ( 5/10) first second third
 
     """
-    counter_str = "{0} ({1:{width}d}/{2})".format(
-        colorize('blue', "*"),
-        current + 1,
-        total,
-        width=len(str(total))
-    )
+    counter_str = "{0} ({1:{width}d}/{2})".format(colorize('blue', "*"),
+                                                  current + 1, total,
+                                                  width=len(str(total)))
 
     # Avoid extraneous whitespace
     if args or kwargs:
@@ -102,7 +100,8 @@ def countdown(current, total, *args, **kwargs):
 
 def _input():
     """Read input from the user."""
-    say(colorize('blue', '>'), end='')  # this is not strip if made an argument to input
+    # this is not strip if made an argument to input
+    say(colorize('blue', '>'), end='')
     return input()
 
 
@@ -221,17 +220,20 @@ def proc(name=None, desc=None):
 
     Args:
         name (str, optional): Defaults to the function's name.
-        desc (str, optional): Defaults to the function's docstrin
+        desc (str, optional): Defaults to the function's docstring.
 
     """
+
     def _decor(func):
         @wraps(func)
         def _wrap(name, desc, *args, **kwargs):
             if desc is None:
-                desc = func.__doc__.split('\n', 1)[0] if func.__doc__ else 'no description'
+                desc = func.__doc__.split('\n', 1)[0] \
+                    if func.__doc__ else 'no description'
             if name is None:
                 name = func.__name__
-            print(colorize('green', name + ':'), desc + ELLIPSIS * 2, end=' ', flush=True)
+            print(colorize('green', name + ':'),
+                  desc + ELLIPSIS * 2, end=' ', flush=True)
             try:
                 result = func(*args, **kwargs)
             except BaseException:
@@ -239,7 +241,9 @@ def proc(name=None, desc=None):
                 raise
             print(CHECK)
             return result
+
         return partial(_wrap, name, desc)
+
     return _decor
 
 
